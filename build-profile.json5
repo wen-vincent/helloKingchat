@@ -1,0 +1,58 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\13823\\.ohos\\config\\default_helloKingchat_wTkuB_F3q5xcvUwQ4u7dUw5ryJ7rixrbGVojU2t7IUM=.cer",
+          "storePassword": "0000001B819B697F9B2039CCEE6CFBB47B94C3BB5E868DB87910F95841DDD8FC159206D89B33463B40EC2E",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B2F5AEF433181CDC3CE4EA6443F5620E2C1D1245274D3E9A29343A657901CA7B52088CBDDE2791E",
+          "profile": "C:\\Users\\13823\\.ohos\\config\\default_helloKingchat_wTkuB_F3q5xcvUwQ4u7dUw5ryJ7rixrbGVojU2t7IUM=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\13823\\.ohos\\config\\default_helloKingchat_wTkuB_F3q5xcvUwQ4u7dUw5ryJ7rixrbGVojU2t7IUM=.p12"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "compatibleSdkVersion": "5.0.0(12)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug",
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "kingchat",
+      "srcPath": "./kingchat",
+    }
+  ]
+}

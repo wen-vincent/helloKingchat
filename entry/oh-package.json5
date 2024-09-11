@@ -1,0 +1,13 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "Please describe the basic information.",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "kingchat": "file:../kingchat",
+//    "kingchat": "file:D:\\Project\\helloKingchat\\kingchat\\build\\default\\outputs\\default\\kingchat.har"
+  }
+}
+

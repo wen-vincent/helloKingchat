@@ -23,6 +23,8 @@ export const pcClientPeerIsConnect: () => Boolean;
 
 export const getMediasoupDevice: (a: String) => string;
 
+export const getSctpCapabilities:() => string;
+
 export const initMediasoup: (cb: (a: string) => Promise<string>) => Number;
 
 export const connectMediastream: (a: String) => Number;

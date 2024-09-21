@@ -98,8 +98,6 @@ export default class WebSocketTransport extends EventEmitter
 				return;
 			}
 
-			logger.debug('_runWebSocket()');
-
 			this._ws = webSocket.createWebSocket();
 			this._ws.on('open',(err: BusinessError, value: Object)=>{
 				if (this._closed)
@@ -117,13 +115,11 @@ export default class WebSocketTransport extends EventEmitter
 				this._closed = true;
 				// Emit 'close' event.
 				this.emit('close',value);
-
-
 			});
 			this._ws.on('error',(err: BusinessError, value: Object)=>{
 				if (this._closed)
 					return;
-				logger.debug('WebSocketTransport connect error');
+				logger.debug('WebSocketTransport connect error',JSON.stringify(err));
 				// this.emit('error',value);
 			});
 			this._ws.on('message',(err: BusinessError, value: Object)=>{
@@ -140,7 +136,7 @@ export default class WebSocketTransport extends EventEmitter
 
 		this._ws.connect(this._url, {protocol: 'protoo'},(err: BusinessError, value: boolean) => {
 			if (!err) {
-				logger.debug("Connected successfully");
+				// logger.debug("Connected successfully");
 			} else {
 				logger.debug("Connection failed. Err:" + JSON.stringify(err));
 			}

@@ -64,8 +64,8 @@ void OhosCameraCapture::OnFrame(const VideoFrame &original_frame) {
     int cropped_height = 0;
     int out_width = 0;
     int out_height = 0;
-    VideoFrame frame = MaybePreprocess(original_frame);
-
+//     VideoFrame frame = MaybePreprocess(original_frame);
+    VideoFrame frame = original_frame;
     bool enable_adaptation;
     {
         MutexLock lock(&lock_);

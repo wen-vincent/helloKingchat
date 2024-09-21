@@ -129,7 +129,7 @@ export default class Peer extends EventEmitter
 	{
 		const request = Message.createRequest(method, data);
 
-		logger.debug('request() [method:%s, id:%s]' + method + request.id);
+		logger.debug('request()',` [method:${method}, id:${request.id}]'`);
 
 		// This may throw.
 		await this._transport.send(request);

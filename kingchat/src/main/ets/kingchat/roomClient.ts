@@ -192,8 +192,7 @@ export class RoomClient extends EventEmitter {
     // http://192.168.80.184:3000/fileServicer/upload
 
     this._fileServiceUrl = 'http' + protooUrl.slice(2) + '/fileServicer/upload';
-    logger.warn('FileServiceUrl', this._fileServiceUrl);
-    logger.warn('mytest', 'connect');
+    logger.debug('FileServiceUrl', this._fileServiceUrl);
     // Protoo URL.
     // @type {String}
     if (protooUrl.slice(-1) != '/') {
@@ -312,7 +311,6 @@ export class RoomClient extends EventEmitter {
       // routerRtpCapabilities.headerExtensions =
       //   routerRtpCapabilities.headerExtensions.filter((ext) => ext.uri !== 'urn:3gpp:video-orientation');
     }
-    logger.warn('getRouterRtpCapabilities', routerRtpCapabilities.headerExtensions);
 
     // this._mediasoupDevice._extendedRtpCapabilities 本地和服务器都支持的编解码器,包含服务器的约束
     // this._mediasoupDevice.rtpCapabilities
@@ -364,9 +362,53 @@ export class RoomClient extends EventEmitter {
     //    });
     // });
 
+    logger.debug('getRouterRtpCapabilities', JSON.stringify(routerRtpCapabilities.headerExtensions));
+    const roomRtpCapabilities = kingchat.getMediasoupDevice(JSON.stringify(routerRtpCapabilities));
+    logger.debug('gerRtpCapabilities', roomRtpCapabilities);
+
+    const sctpCapabilities = kingchat.getSctpCapabilities();
+    logger.debug('get sctpCapabilities', sctpCapabilities);
+
+    await this._protoo.request('setRtpCapabilities', {
+      rtpCapabilities: JSON.parse(roomRtpCapabilities)
+    }).catch((err) => {
+      logger.error('setRtpCapabilities error', JSON.stringify(err));
+    });
+
+    const transportInfoProducing =
+      await this._protoo.request('createWebRtcTransport', {
+        forceTcp: false,
+        producing: true,
+        consuming: false,
+        sctpCapabilities: JSON.parse(sctpCapabilities)
+      }).catch((err) => {
+        logger.error('获取服务器信息失败', JSON.stringify(err));
+      });
+
+    const transportInfoConsuming =
+      await this._protoo.request('createWebRtcTransport', {
+        forceTcp: false,
+        producing: false,
+        consuming: true,
+        sctpCapabilities: JSON.parse(sctpCapabilities)
+      }).catch((err) => {
+        logger.error('获取服务器信息失败', JSON.stringify(err));
+      });
+    let transportInfo = { transportInfoProducing, transportInfoConsuming }
+    logger.warn('js get transportInfo: ', JSON.stringify(transportInfo));
+
+    // // wss连接
+    await this._protoo.request(
+      'join', {
+      displayName: "testHarmony",
+      device: this._device,
+      rtpCapabilities: JSON.parse(roomRtpCapabilities),
+      sctpCapabilities: true
+    });
+
     let callback = (parm: string): Promise<string> => {
 
-      const jspnParm = JSON.parse(parm.toString());
+      const jspnParm = JSON.parse(parm);
 
       return new Promise(async (resolve, reject) => {
         if (jspnParm.action === 'produce') {
@@ -394,57 +436,8 @@ export class RoomClient extends EventEmitter {
 
     }
 
-    const initInfo = kingchat.initMediasoup(callback);
-
-    if (initInfo) {
-      logger.warn("初始化mediasoup成功", initInfo.toString());
-    }
-
-    const roomRtpCapabilities = kingchat.getMediasoupDevice(JSON.stringify(routerRtpCapabilities));
-    logger.warn('gerRtpCapabilities', roomRtpCapabilities.toString());
-
-    // await this._protoo.request('setRtpCapabilities', {
-    //   rtpCapabilities: JSON.parse(roomRtpCapabilities)
-    // }).catch((err) => {
-    //   logger.error('setRtpCapabilities error', JSON.stringify(err));
-    // });
-
-    const transportInfoProducing =
-      await this._protoo.request('createWebRtcTransport', {
-        forceTcp: false,
-        producing: true,
-        consuming: false,
-        sctpCapabilities: true
-      }).catch((err) => {
-        logger.error('获取服务器信息失败', JSON.stringify(err));
-      });
-
-    const transportInfoConsuming =
-      await this._protoo.request('createWebRtcTransport', {
-        forceTcp: false,
-        producing: false,
-        consuming: true,
-        sctpCapabilities: true
-      }).catch((err) => {
-        logger.error('获取服务器信息失败', JSON.stringify(err));
-      });
-    let transportInfo = { transportInfoProducing, transportInfoConsuming }
-    logger.warn('js get transportInfo: ', JSON.stringify(transportInfo));
-
-
-    logger.warn("roomRtpCapabilities:", roomRtpCapabilities);
-    logger.warn("routerRtpCapabilities:", JSON.stringify(routerRtpCapabilities));
-    // // wss连接
-    await this._protoo.request(
-      'join', {
-      displayName: "testHarmony",
-      device: this._device,
-      rtpCapabilities: JSON.parse(roomRtpCapabilities),
-      sctpCapabilities: true
-    });
-
+    kingchat.initMediasoup(callback);
     kingchat.connectMediastream(JSON.stringify(transportInfo));
-
   }
 
   async sendChatMessage({ text }) {
@@ -471,50 +464,38 @@ export class RoomClient extends EventEmitter {
     // kingchat.initCameraAndCreatTrack(receiverSurfaceId, XComponentSurfaceId);
     kingchat.getVersion(receiverSurfaceId, XComponentSurfaceId);
 
-    // 无法获取连接出错误后错误原因
     if (!this._protooTransport) {
       try {
         this._protooTransport = new WebSocketTransport(this._protooUrl, 'protoo');
         this._protooTransport.on('open', () => {
-          logger.warn('创建WebSocketTransport成功!');
+          logger.warn('创建WebSocketTransport成功!','onopen');
         });
 
         this._protooTransport.on('failed', () => {
-          logger.error('WebSocketTransport failed');
-          // this.emit('reconnection', currentAttempt);
-          // if (this._getBitrateInterval) {
-          //   clearInterval(this._getBitrateInterval);
-          //   this._getBitrateInterval = null;
-          // }
-          // if (currentAttempt >= 100) {
-          //   this._protooTransport.close();
-          //   this._protooTransport = null;
-          //   this.emit('error', '和视频服务器建立连接失败');
-          // }
+          logger.error('WebSocketTransport','failed!');
         });
 
         this._protooTransport.on('close', (event) => {
           if (event && event.reason) {
             logger.error('WebSocketTransport closed: %O', event.reason);
-            this.emit('error', event.reason);
+            // this.emit('error', event);
           } else {
-            logger.warn('WebSocketTransport closed!');
+            logger.warn('WebSocketTransport closed: ','normal');
           }
-
         });
 
       } catch (error) {
-        logger.error('_protooTransport', error);
+        logger.error('创建protooTransport', 'error');
         this.emit('error', error);
       }
     } else {
-      logger.warn('protooTransport 已经创建!')
+      logger.warn('protooTransport 已经创建!','')
     }
 
     // this._protoo 多次初始化时候,不会有多个连接
     this._protoo = new Peer(this._protooTransport);
     this._protoo.on('open', async () => {
-      logger.warn('创建protoo client成功!');
+      logger.warn('创建protoo client成功!','onopen');
       this.emit('connected');
 
       // 获取媒体信息
@@ -545,10 +526,10 @@ export class RoomClient extends EventEmitter {
 
     this._protoo.on('disconnected', () => {
       if (this._closed) {
-        logger.warn('disconnected: The connection is down and closed!');
+        logger.warn('The connection is down and closed!','disconnected');
         return;
       }
-      logger.warn('disconnected: The connection is down !');
+      logger.warn('The connection is down !','disconnected');
       // this.close();
       // this.emit('closed');
 
@@ -569,90 +550,20 @@ export class RoomClient extends EventEmitter {
 
     this._protoo.on('close', () => {
       if (this._closed) {
-        logger.warn('close: The connection is down and closed!');
+        logger.warn('The connection is down and closed!','close');
         return;
       }
-      logger.warn('close: The connection is down !');
+      logger.warn('close: The connection is down !','close');
       // this.close();
       // this.emit('closed');
     });
 
     this._protoo.on('request', async (request, accept, reject) => {
-      logger.warn(
-        'proto "request" event [method:%s, data:%o]',
-        request.method, request.data);
-
+      logger.debug( 'proto "request" event',` [method:${request.method}, data:${JSON.stringify(request.data)}]`);
       switch (request.method) {
         case 'newConsumer': {
-
-          logger.warn("js createConsume", request.data);
           kingchat.createConsume(JSON.stringify(request.data));
-          logger.warn("js createConsume", "stop");
-          // TODO: 单向视频不需要拉流
-          // if (!this._consume) {
-          //   reject(403, 'I do not want to consume');
-          //   break;
-          // }
-
-          // const {
-          //   peerId,
-          //   producerId,
-          //   id,
-          //   kind,
-          //   rtpParameters,
-          //   appData,
-          // } = request.data;
-
-          // try {
-          //   const consumer = await this._recvTransport.consume({
-          //     id,
-          //     producerId,
-          //     kind,
-          //     rtpParameters,
-          //     appData: {
-          //       ...appData,
-          //       peerId
-          //     }
-          //   });
-
-          // this._consumers.set(consumer.id, consumer);
-          // consumer.track.deviceInfo = consumer.appData.deviceInfo;
-          // logger.warn("获得新的track,consumerId:%o,appData:%o", consumer.id, appData);
-          // if (!appData) {
-          //   if (!this._remoteStream) this._remoteStream = new MediaStream();
-          //   this._remoteStream.addTrack(consumer.track);
-          //   this.emit('getRemoteStream', kind, this._remoteStream);
-          // }
-          // else if (appData.shareDesktop) {
-          //   this.shareDesktopWidth = appData.shareDesktopWidth;
-          //   this.shareDesktopHeight = appData.shareDesktopHeight
-          //   if (!this._shareDesktopStream) this._shareDesktopStream = new MediaStream();
-          //   this._shareDesktopStream.addTrack(consumer.track);
-          //   this.emit('getShareDesktopStream', kind, this._shareDesktopStream);
-          // }
-          // else {
-          //   if (!this._remoteStream) this._remoteStream = new MediaStream();
-          //   this._remoteStream.addTrack(consumer.track);
-          //   this.emit('getRemoteStream', kind, this._remoteStream);
-          // }
-          // this.emit('getRemoteStream', kind, consumer.track);
-
-          // consumer.on('transportclose', () => {
-          //   this._consumers.delete(consumer.id);
-          // });
-
-          // We are ready. Answer the protoo request so the server will
-          // resume this Consumer (which was paused for now if video).
           accept();
-
-          // If audio-only mode is enabled, pause it.
-          // if (consumer.kind === 'video')
-          // 	this._pauseConsumer(consumer);
-          // } catch (error) {
-          //   logger.error('newConsumer', error);
-          //   this.emit('error', '获取对方视频流错误!');
-          // }
-
           break;
         }
         case 'newDataConsumer': {
@@ -1009,7 +920,7 @@ export class RoomClient extends EventEmitter {
 
   close() {
     if (this._closed) {
-      logger.warn("mytestclose", "func close()");
+      logger.warn("mytest", "func close()");
       return;
     }
 

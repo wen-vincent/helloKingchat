@@ -23,8 +23,11 @@
 #include "samples/sample_bitmap.h"
 #include "plugin/plugin_manager.h"
 Broadcaster broadcaster;
+CallbackData *callbackData = nullptr;
 // broadcaster.Start(baseUrl, enableAudio, useSimulcast, response, verifySsl);
 
+int CreateConsumeVideo = 0;
+int CreateConsumeAudio = 0;
 using json = nlohmann::json;
 static napi_value Add(napi_env env, napi_callback_info info)
 {
@@ -66,19 +69,19 @@ static napi_value StopCamera(napi_env env, napi_callback_info info) {
 
 static napi_value InitCameraAndCreatTrack(napi_env env, napi_callback_info info) {
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "GetVersion %{public}s\n", "1.0.0");
-//     webrtc::ohos::OhosCamera::GetInstance().Init(env, info);
+    webrtc::ohos::OhosCamera::GetInstance().Init(env, info);
 //     uint32_t camera_index = webrtc::ohos::OhosCamera::GetInstance().GetCameraIndex();
 //     camera_index = 1;
-//     //     camera_index = camera_index <= 1 ? 1 - camera_index : 0;
+    //     camera_index = camera_index <= 1 ? 1 - camera_index : 0;
 //     webrtc::ohos::OhosCamera::GetInstance().SetCameraIndex(camera_index);
 //     webrtc::ohos::OhosCamera::GetInstance().InitCamera();
 //     webrtc::ohos::OhosCamera::GetInstance().SetCameraIndex(camera_index);
 //     webrtc::ohos::OhosCamera::GetInstance().StartCamera();
-//     //     if (!GetPeerConnect()) {
-//     //         PeerSamplePostEvent(PEER_EVENT_CONNECT_PEER);
-//     //     }
-//     napi_value result;
-//     napi_create_int32(env, camera_index, &result);
+    //     if (!GetPeerConnect()) {
+    //         PeerSamplePostEvent(PEER_EVENT_CONNECT_PEER);
+    //     }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
     return 0;
 }
 
@@ -119,10 +122,17 @@ static napi_value CreateConsume(napi_env env, napi_callback_info info) {
     char *test = new char[result1 + 1];
     napi_get_value_string_utf8(env, args[0], test, result1 + 1, &result1);
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "CreateConsume %{public}s\n", test);
-    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "CreateConsumeThreadId %{public}lu\n",
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "CreateConsumeThreadId %{public}d\n",
                  std::this_thread::get_id());
     auto consumeInfo = nlohmann::json::parse(test);
-    //     broadcaster.createConsumer(consumeInfo);
+//         broadcaster.createConsumer(consumeInfo);
+    if(consumeInfo["kind"] == "video") {
+        CreateConsumeVideo = 1;
+    }
+    if(consumeInfo["kind"] == "video") {
+        CreateConsumeAudio = 1;
+    }
+
     std::thread t(&Broadcaster::createConsumer, std::ref(broadcaster), consumeInfo);
     t.detach();
 
@@ -223,8 +233,6 @@ static napi_value ConnectMediastream(napi_env env, napi_callback_info info) {
     napi_get_value_string_utf8(env, args[0], test, result1 + 1, &result1);
 
     nlohmann::json routerRtpCapabilities = nlohmann::json::parse(test);
-    //     int res = broadcaster.CreateTransport(routerRtpCapabilities);
-
 
     std::thread t(&Broadcaster::CreateTransport, std::ref(broadcaster), routerRtpCapabilities);
     t.detach();
@@ -236,25 +244,37 @@ static napi_value ConnectMediastream(napi_env env, napi_callback_info info) {
 static napi_value GetVersion(napi_env env, napi_callback_info info) {
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "GetVersion %{public}s\n", "1.0.0");
         webrtc::ohos::OhosCamera::GetInstance().Init(env, info);
-    uint32_t camera_index = webrtc::ohos::OhosCamera::GetInstance().GetCameraIndex();
-    camera_index = 1;
-    //     camera_index = camera_index <= 1 ? 1 - camera_index : 0;
-    webrtc::ohos::OhosCamera::GetInstance().SetCameraIndex(camera_index);
-    webrtc::ohos::OhosCamera::GetInstance().InitCamera();
-    webrtc::ohos::OhosCamera::GetInstance().SetCameraIndex(camera_index);
-    webrtc::ohos::OhosCamera::GetInstance().StartCamera();
+//     uint32_t camera_index = webrtc::ohos::OhosCamera::GetInstance().GetCameraIndex();
+//     camera_index = 1;
+//     //     camera_index = camera_index <= 1 ? 1 - camera_index : 0;
+//     webrtc::ohos::OhosCamera::GetInstance().SetCameraIndex(camera_index);
+//     webrtc::ohos::OhosCamera::GetInstance().InitCamera();
+//     webrtc::ohos::OhosCamera::GetInstance().SetCameraIndex(camera_index);
+//     webrtc::ohos::OhosCamera::GetInstance().StartCamera();
     //     if (!GetPeerConnect()) {
     //         PeerSamplePostEvent(PEER_EVENT_CONNECT_PEER);
     //     }
     napi_value result;
-    napi_create_int32(env, camera_index, &result);
+    napi_create_int32(env, 1, &result);
     return 0;
+}
+
+static napi_value GetSctpCapabilities(napi_env env, napi_callback_info info) {
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "GetSctpCapabilities \n");
+    auto sctpCapabilities = broadcaster.getSctpCapabilities();
+
+    napi_value result;
+    napi_create_string_utf8(env, sctpCapabilities.dump().c_str(), NAPI_AUTO_LENGTH, &result);
+    return result;
 }
 
 static napi_value Close(napi_env env, napi_callback_info info) {
     //     CameraRelease();
     webrtc::ohos::OhosCamera::GetInstance().CameraRelease();
     broadcaster.Stop();
+     CreateConsumeVideo = 0;
+ CreateConsumeAudio = 0;
+    
     return 0;
 }
 
@@ -262,9 +282,10 @@ EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     OH_LOG_Print(LOG_APP, LOG_WARN, LOG_DOMAIN, "mytest", "NAPIInit");
-    CallbackData *callbackData = new CallbackData();
+    if(!callbackData)
+        callbackData = new CallbackData();
     PluginManager::GetInstance()->Export(env, exports);
-    napi_callback_info info;
+
     napi_property_descriptor desc[] = {
         { "add", nullptr, Add, nullptr, nullptr, nullptr, napi_default, nullptr },
         {"getMediasoupDevice", nullptr, GetMediasoupDevice, nullptr, nullptr, nullptr, napi_default, nullptr},
@@ -276,6 +297,7 @@ static napi_value Init(napi_env env, napi_value exports)
         {"startThread", nullptr, StartThread, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"close", nullptr, Close, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getVersion", nullptr, GetVersion, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getSctpCapabilities", nullptr, GetSctpCapabilities, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;

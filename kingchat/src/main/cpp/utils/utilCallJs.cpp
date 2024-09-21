@@ -32,7 +32,7 @@ napi_value utilCallJs::ResolvedCallback(napi_env env, napi_callback_info info) {
     size_t result = 0;
     char buf[32] = {0};
     napi_get_value_string_utf8(env, argv[0], buf, 32, &result);
-    OH_LOG_Print(LOG_APP, LOG_DEBUG, LOG_DOMAIN, "mytest", "get js res:%{public}s");
+//     OH_LOG_Print(LOG_APP, LOG_DEBUG, LOG_DOMAIN, "mytest", "get js res:%{public}s");
     reinterpret_cast<std::promise<std::string> *>(data)->set_value(std::string(buf));
     return nullptr;
 }

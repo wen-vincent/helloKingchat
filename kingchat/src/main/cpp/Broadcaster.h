@@ -72,6 +72,7 @@ public:
     void Stop();
     int CreateTransport(const nlohmann::json transportInfo);
     int createConsumer(const nlohmann::json consumeInfo);
+    nlohmann::json getSctpCapabilities();
     utilCallJs *getProduceId;
     utilCallJs *connectWebRtcTransport;
     ~Broadcaster();

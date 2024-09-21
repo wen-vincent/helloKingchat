@@ -54,10 +54,7 @@ static void createFactory() {
 
     webrtc::PeerConnectionInterface::RTCConfiguration config;
 
-    auto fakeAudioCaptureModule = FakeAudioCaptureModule::Create();
-    if (!fakeAudioCaptureModule) {
-        MSC_THROW_INVALID_STATE_ERROR("audio capture module creation errored");
-    }
+
 
     // 创建编码器
     //     factory = webrtc::CreatePeerConnectionFactory(

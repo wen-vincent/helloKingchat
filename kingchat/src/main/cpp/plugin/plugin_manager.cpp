@@ -98,10 +98,9 @@ void PluginManager::Export(napi_env env, napi_value exports) {
         if (render != nullptr) {
             render->RegisterCallback(nativeXComponent);
             render->Export(env, exports);
-            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, "mytest", "RegisterCallback is ok");
         }
     }
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, "mytest", "exports is ok");
+    OH_LOG_Print(LOG_APP, LOG_DEBUG, LOG_DOMAIN, "mytest", "exports is ok");
 }
 //
 // EXTERN_C_START

@@ -6,8 +6,8 @@
   "author": "",
   "license": "",
   "dependencies": {
-    "kingchat": "file:../kingchat",
+//    "kingchat": "file:../kingchat",
+    "kingchat": "file:./lib/kingchat.har",
 //    "kingchat": "file:D:\\Project\\helloKingchat\\kingchat\\build\\default\\outputs\\default\\kingchat.har"
   }
 }
-

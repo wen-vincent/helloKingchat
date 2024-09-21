@@ -20,7 +20,7 @@
 #include <native_drawing/drawing_text_typography.h>
 #include "sample_bitmap.h"
 #include "common/log_common.h"
-
+std::string g_id;
 void SampleBitMap::SetWidth(uint64_t width) // 设置窗口宽度
 {
     width_ = width;
@@ -192,34 +192,36 @@ void SampleBitMap::Destroy() {
 }
 
 napi_value SampleBitMap::NapiDrawPattern(napi_env env, napi_callback_info info) {
-    //     if ((env == nullptr) || (info == nullptr)) {
-    //         return nullptr;
-    //     }
+            
+        if ((env == nullptr) || (info == nullptr)) {
+            return nullptr;
+        }
 
-    //     napi_value thisArg;
-    //     if (napi_get_cb_info(env, info, nullptr, nullptr, &thisArg, nullptr) != napi_ok) {
-    //         return nullptr;
-    //     }
-    //
-    //     napi_value exportInstance;
-    //     if (napi_get_named_property(env, thisArg, OH_NATIVE_XCOMPONENT_OBJ, &exportInstance) != napi_ok) {
-    //         return nullptr;
-    //     }
-    //
-    //     OH_NativeXComponent *nativeXComponent = nullptr;
-    //     if (napi_unwrap(env, exportInstance, reinterpret_cast<void **>(&nativeXComponent)) != napi_ok) {
-    //         return nullptr;
-    //     }
+        napi_value thisArg;
+        if (napi_get_cb_info(env, info, nullptr, nullptr, &thisArg, nullptr) != napi_ok) {
+            return nullptr;
+        }
 
-    //     char idStr[OH_XCOMPONENT_ID_LEN_MAX + 1] = {'\0'};
-    //     uint64_t idSize = OH_XCOMPONENT_ID_LEN_MAX + 1;
-    //     if (OH_NativeXComponent_GetXComponentId(nativeXComponent, idStr, &idSize) !=
-    //     OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
-    //         return nullptr;
-    //     }
-    //     DRAWING_LOGI("ID = %{public}s", idStr);
-    //     std::string id(idStr);
-    std::string id("xcomponentId");
+        napi_value exportInstance;
+        if (napi_get_named_property(env, thisArg, OH_NATIVE_XCOMPONENT_OBJ, &exportInstance) != napi_ok) {
+            return nullptr;
+        }
+
+        OH_NativeXComponent *nativeXComponent = nullptr;
+        if (napi_unwrap(env, exportInstance, reinterpret_cast<void **>(&nativeXComponent)) != napi_ok) {
+            return nullptr;
+        }
+
+        char idStr[OH_XCOMPONENT_ID_LEN_MAX + 1] = {'\0'};
+        uint64_t idSize = OH_XCOMPONENT_ID_LEN_MAX + 1;
+        if (OH_NativeXComponent_GetXComponentId(nativeXComponent, idStr, &idSize) !=
+        OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
+            return nullptr;
+        }
+        DRAWING_LOGI("ID = %{public}s", idStr);
+        std::string id(idStr);
+    
+//     std::string id("xcomponentId");
     SampleBitMap *render = SampleBitMap().GetInstance(id);
     if (render != nullptr) {
         render->Prepare();
@@ -229,13 +231,18 @@ napi_value SampleBitMap::NapiDrawPattern(napi_env env, napi_callback_info info) 
         render->DrawPath();
         render->DisPlay();
         render->Destroy();
-        DRAWING_LOGI("DrawPath executed");
+        DRAWING_LOGI("NapiDrawPattern DrawPath executed");
+    }
+    else {
+        DRAWING_LOGI("NapiDrawPattern DrawPath error");
     }
     return nullptr;
 }
 napi_value SampleBitMap::NapiDrawPatternNative(napi_env env, void *bitmapAddr) {
+    
     DRAWING_LOGI("NapiDrawPatternNative");
-    std::string id("xcomponentId");
+//     std::string id("xcomponentId");
+    std::string id = g_id;
     SampleBitMap *render = SampleBitMap().GetInstance(id);
     if (bitmapAddr == nullptr) {
         DRAWING_LOGI("get bitmapAddr error");
@@ -252,7 +259,7 @@ napi_value SampleBitMap::NapiDrawPatternNative(napi_env env, void *bitmapAddr) {
         render->DrawPath();
         render->DisPlay();
         render->Destroy();
-        DRAWING_LOGI("DrawPath executed");
+        DRAWING_LOGI("NapiDrawPatternNative DrawPath executed");
     }
     return nullptr;
 }
@@ -348,7 +355,10 @@ static void OnSurfaceCreatedCB(OH_NativeXComponent *component,
     if (OH_NativeXComponent_GetXComponentId(component, idStr, &idSize) != OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
         return;
     }
+    
+    DRAWING_LOGI("OnSurfaceCreatedCB id is%{public}s",idStr);
     std::string id(idStr);
+    g_id = id;
     auto render = SampleBitMap::GetInstance(id);
     if (render == nullptr) {
         return;

@@ -70,7 +70,7 @@ private:
   Camera_PreviewOutput* preview_output_ {nullptr};
   Camera_PreviewOutput* x_component_preview_ {nullptr};
   Camera_Input* camera_input_ {nullptr};
-  uint32_t camera_dev_index_ {0};
+  uint32_t camera_dev_index_ {1};
   uint32_t profile_index_ {0};
 };
 } // namespace ohos

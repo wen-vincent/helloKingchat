@@ -43,7 +43,7 @@ void SampleBitMap::Prepare() {
 
     // 通过 OH_NativeWindow_NativeWindowRequestBuffer 获取 OHNativeWindowBuffer 实例
     int ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow_, &buffer_, &fenceFd_);
-    DRAWING_LOGI("request buffer ret = %{public}d", ret);
+//     DRAWING_LOGI("request buffer ret = %{public}d", ret);
     // 通过 OH_NativeWindow_GetBufferHandleFromNative 获取 buffer 的 handle
     bufferHandle_ = OH_NativeWindow_GetBufferHandleFromNative(buffer_);
     // 使用系统mmap接口拿到bufferHandle的内存虚拟地址
@@ -240,7 +240,7 @@ napi_value SampleBitMap::NapiDrawPattern(napi_env env, napi_callback_info info) 
 }
 napi_value SampleBitMap::NapiDrawPatternNative(napi_env env, void *bitmapAddr) {
     
-    DRAWING_LOGI("NapiDrawPatternNative");
+//     DRAWING_LOGI("NapiDrawPatternNative");
 //     std::string id("xcomponentId");
     std::string id = g_id;
     SampleBitMap *render = SampleBitMap().GetInstance(id);
@@ -248,7 +248,7 @@ napi_value SampleBitMap::NapiDrawPatternNative(napi_env env, void *bitmapAddr) {
         DRAWING_LOGI("get bitmapAddr error");
         return nullptr;
     } else {
-        DRAWING_LOGI("get bitmapAddr succ");
+//         DRAWING_LOGI("get bitmapAddr succ");
     }
     render->bitmapAddr = bitmapAddr;
     if (render != nullptr) {
@@ -259,7 +259,7 @@ napi_value SampleBitMap::NapiDrawPatternNative(napi_env env, void *bitmapAddr) {
         render->DrawPath();
         render->DisPlay();
         render->Destroy();
-        DRAWING_LOGI("NapiDrawPatternNative DrawPath executed");
+//         DRAWING_LOGI("NapiDrawPatternNative DrawPath executed");
     }
     return nullptr;
 }
@@ -278,7 +278,7 @@ void SampleBitMap::Export(napi_env env, napi_value exports) // 定义并导出�
 
 SampleBitMap::~SampleBitMap() {
 
-    DRAWING_LOGI("~SampleBitMap");
+//     DRAWING_LOGI("~SampleBitMap");
     // 销毁创建的对象
     OH_Drawing_PenDestroy(cPen_);
     cPen_ = nullptr;
@@ -391,7 +391,7 @@ static void OnSurfaceDestroyedCB(OH_NativeXComponent *component, void *window) /
     if (OH_NativeXComponent_GetXComponentId(component, idStr, &idSize) != OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
         return;
     }
-    std::string id(idStr);
+//     std::string id(idStr);
 //     SampleBitMap::Release(id);
 }
 

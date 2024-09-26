@@ -234,8 +234,8 @@ void OhosMainWnd::VideoRenderer::OnFrame(const webrtc::VideoFrame &video_frame) 
     }
     if (!buffer) return;
     SetSize(buffer->width(), buffer->height());
-    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "VideoRenderer::OnFrame width:%{public}d height:%{public}d",
-                 buffer->width(), buffer->height());
+//     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "VideoRenderer::OnFrame width:%{public}d height:%{public}d",
+//                  buffer->width(), buffer->height());
     libyuv::I420ToABGR(buffer->DataY(), buffer->StrideY(), buffer->DataU(), buffer->StrideU(), buffer->DataV(),
                        buffer->StrideV(), image_.get(), width_ * 4, buffer->width(), buffer->height());
 

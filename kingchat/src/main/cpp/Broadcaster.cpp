@@ -82,7 +82,7 @@ std::future<void> Broadcaster::OnConnectRecvTransport(const json &dtlsParameters
     std::string parmStr = parm.dump();
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "[INFO] Broadcaster::setParm() %{public}s\n",
                  parmStr.c_str());
-    
+
     std::future<std::string> fu = getProduceId->executeJs(env, false, parmStr);
     fu.get();
     promise.set_value();
@@ -128,10 +128,10 @@ std::future<std::string> Broadcaster::OnProduce(mediasoupclient::SendTransport *
 
         deviceInfo["width"] = 480;
         deviceInfo["height"] = 640;
-        deviceInfo["flag"] = "Harmony"; // 浏览器名字
-        deviceInfo["name"] = "Harmony"; // 浏览器名字
-        deviceInfo["version"] = "Harmony OS Next 4.2"; // 浏览器版本
-        deviceInfo["OSName"] = "Harmony OS Next 4.2"; // 系统名字
+        deviceInfo["flag"] = "Harmony";                  // 浏览器名字
+        deviceInfo["name"] = "Harmony";                  // 浏览器名字
+        deviceInfo["version"] = "Harmony OS Next 4.2";   // 浏览器版本
+        deviceInfo["OSName"] = "Harmony OS Next 4.2";    // 系统名字
         deviceInfo["OSVersion"] = "Harmony OS Next 4.2"; // 系统版本
         deviceInfo["isIosWechat"] = false;
         deviceInfo["kingchatVersion"] = "1.0";
@@ -220,13 +220,11 @@ const nlohmann::json &Broadcaster::Start(bool enableAudio, bool useSimulcast, co
 }
 
 int Broadcaster::CreateTransport(const nlohmann::json transportInfo) {
-    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "transportInfo %{public}s\n",
-                 transportInfo.dump().c_str());
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "transportInfo %{public}s\n", transportInfo.dump().c_str());
     this->CreateSendTransport(true, false, transportInfo);
     this->CreateRecvTransport(transportInfo);
-    
-    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "transportInfo %{public}s\n",
-                 transportInfo.dump().c_str());
+
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "transportInfo %{public}s\n", transportInfo.dump().c_str());
     return 0;
 }
 
@@ -264,15 +262,15 @@ int Broadcaster::createConsumer(const nlohmann::json consumeInfo) {
     auto appData = response["appData"].get<nlohmann::json>();
 
     OH_LOG_Print(LOG_APP, LOG_DEBUG, LOG_DOMAIN, "mytest", "OnConnectRecvTransport cansumer");
-//         std::future<bool> fu = canConsumerVideo.get_future();
-//                 fu.get();
-//                 std::future<bool> fu = this->canConsumerAudio.get_future();
-//                 fu.get();
+    //         std::future<bool> fu = canConsumerVideo.get_future();
+    //                 fu.get();
+    //                 std::future<bool> fu = this->canConsumerAudio.get_future();
+    //                 fu.get();
     if (kind == "video") {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
 
-//                 std::future<bool> fu = this->canConsumerVideo.get_future();
-//                 fu.get();
+        //                 std::future<bool> fu = this->canConsumerVideo.get_future();
+        //                 fu.get();
         this->videoConsumer = this->recvTransport->Consume(this, id, producerId, kind, &rtpParameters, appData);
 
         auto track = this->videoConsumer->GetTrack();
@@ -280,22 +278,20 @@ int Broadcaster::createConsumer(const nlohmann::json consumeInfo) {
             this->g_wnd = new OhosMainWnd("192.168.3.71", 8888, false, false);
         }
         this->g_wnd->StartRemoteRenderer(static_cast<webrtc::VideoTrackInterface *>(track));
-//         this->canConsumerAudio.set_value(true);
+        //         this->canConsumerAudio.set_value(true);
     } else {
         std::this_thread::sleep_for(std::chrono::seconds(2));
-//                 std::future<bool> fu = this->canConsumerAudio.get_future();
-//                 fu.get();
+        //                 std::future<bool> fu = this->canConsumerAudio.get_future();
+        //                 fu.get();
         OH_LOG_Print(LOG_APP, LOG_DEBUG, LOG_DOMAIN, "mytest", "createConsumer %{public}s %{public}s", kind.c_str(),
                      rtpParameters.dump().c_str());
-                this->audioConsumer = this->recvTransport->Consume(this, id, producerId, kind, &rtpParameters,appData); 
-//         auto track = this->audioConsumer->GetTrack();
+        this->audioConsumer = this->recvTransport->Consume(this, id, producerId, kind, &rtpParameters, appData);
+        //         auto track = this->audioConsumer->GetTrack();
     }
     return 0;
 }
 
-nlohmann::json Broadcaster::getSctpCapabilities(){
-    return this->device.GetSctpCapabilities();
-}
+nlohmann::json Broadcaster::getSctpCapabilities() { return this->device.GetSctpCapabilities(); }
 
 void Broadcaster::CreateDataConsumer() {
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "[INFO] Broadcaster::CreateDataConsumer()\n");
@@ -370,15 +366,20 @@ void Broadcaster::CreateSendTransport(bool enableAudio, bool useSimulcast, const
 
     ///////////////////////// Create Audio Producer //////////////////////////
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "[INFO] 4444444444444444444444\n");
+    nlohmann::json appData;
+    appData["mediaSendState"] = 1;
+    appData["mediaIdentity"] = 4;
     if (enableAudio && this->device.CanProduce("audio")) {
 
- 
-
+        //         appData: {
+        // 					mediaSendState: MEDIA_SEND_STATE.SENDONLY,
+        // 					mediaIdentity: MEDIA_IDENTITY.RECORD_ONLY
+        // 				}
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "[INFO] 开始推流 audio\n");
         auto audioTrack = createAudioTrack(std::to_string(rtc::CreateRandomId()));
 
         json codecOptions = {{"opusStereo", true}, {"opusDtx", true}};
-        this->sendTransport->Produce(this, audioTrack.get(), nullptr, &codecOptions, nullptr);
+        this->sendTransport->Produce(this, audioTrack.get(), nullptr, &codecOptions, nullptr, appData);
 
         //         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "[INFO] 开始推流 audio\n");
         //         auto audioTrack = createAudioTrack(std::to_string(rtc::CreateRandomId()));
@@ -466,11 +467,12 @@ void Broadcaster::CreateRecvTransport(const nlohmann::json &transportInfo) {
     //     this->CreateDataConsumer();
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest", "recvTransportGetId2 %{public}lu\n",
                  std::this_thread::get_id());
-    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest","[INFO] Broadcaster::CreateRecvTransport over--!!!------ %{public}s\n",
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "mytest",
+                 "[INFO] Broadcaster::CreateRecvTransport over--!!!------ %{public}s\n",
                  this->recvTransport->GetId().c_str());
-    
+
     canConsumerVideo.set_value(true);
-//     this->canConsumerAudio.set_value(true);
+    //     this->canConsumerAudio.set_value(true);
 }
 
 void Broadcaster::OnMessage(mediasoupclient::DataConsumer *dataConsumer, const webrtc::DataBuffer &buffer) {
@@ -494,7 +496,7 @@ void Broadcaster::Stop() {
         sendTransport->Close();
     }
     canConsumerVideo = std::promise<bool>();
-//     this->canConsumerAudio = std::promise<bool>();
+    //     this->canConsumerAudio = std::promise<bool>();
     // 	cpr::DeleteAsync(
     // 	  cpr::Url{ this->baseUrl + "/broadcasters/" + this->id }, cpr::VerifySsl{ verifySsl })
     // 	  .get();

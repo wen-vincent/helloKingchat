@@ -17,11 +17,11 @@ struct Index {
   private XComponentSurfaceId: string = 'localVideo';
   private mXComponentController: XComponentController = new XComponentController;
   private chatClient: RoomClient = new RoomClient({
-    roomId: '0099123',
+    roomId: '0099qwe',
     localStream: '',
     displayName: '',
     mode: '2',
-    protooUrl: 'wss://kingchat.szkingdom.vip/kingchat',
+    protooUrl: 'wss://inward.szkingdom.vip/kingchat',
     videoContentHint: '',
     forceAudioCodec: '',
     audioContentHint: '',

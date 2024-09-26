@@ -1,4 +1,4 @@
-import {Logger} from '../utils/Logger'
+import { Logger } from '../utils/Logger'
 import { generateRandomString, generateRandomNumber, deviceInfo } from '../utils/Utils'
 import WebSocketTransport from '../protooClient/transports/WebSocketTransport'
 import Peer from '../protooClient/Peer'
@@ -11,6 +11,7 @@ import {
   MEDIA_SEND_STATE,
   MEDIA_IDENTITY
 } from '../utils/define';
+import { map } from '@kit.MapKit'
 
 
 // export function kingchat.createFromReceiver;
@@ -132,7 +133,7 @@ export class RoomClient extends EventEmitter {
 
     // video mode
     // @type {VIDEO_MODE}
-    this._videoMode = mode;
+    this._videoMode = Number(mode);
 
     // 由于双向视频,是在对方加入房间后推流,对于多次加入房间要对推流状态进行判断
     // @type {Boolean}
@@ -362,18 +363,17 @@ export class RoomClient extends EventEmitter {
     //    });
     // });
 
-    logger.debug('getRouterRtpCapabilities', JSON.stringify(routerRtpCapabilities.headerExtensions));
+    logger.debug('getRouterRtpCapabilities', JSON.stringify(routerRtpCapabilities));
     const roomRtpCapabilities = kingchat.getMediasoupDevice(JSON.stringify(routerRtpCapabilities));
-    logger.debug('gerRtpCapabilities', roomRtpCapabilities);
+    logger.debug('gerRtpCapabilities', roomRtpCapabilities.toString());
+
+    await this._protoo.request(
+      'setRtpCapabilities', {
+      // rtpCapabilities: {rtpCapabilities:JSON.parse(roomRtpCapabilities.toString())}
+      rtpCapabilities: JSON.parse(roomRtpCapabilities.toString())
+    });
 
     const sctpCapabilities = kingchat.getSctpCapabilities();
-    logger.debug('get sctpCapabilities', sctpCapabilities);
-
-    await this._protoo.request('setRtpCapabilities', {
-      rtpCapabilities: JSON.parse(roomRtpCapabilities)
-    }).catch((err) => {
-      logger.error('setRtpCapabilities error', JSON.stringify(err));
-    });
 
     const transportInfoProducing =
       await this._protoo.request('createWebRtcTransport', {
@@ -402,8 +402,8 @@ export class RoomClient extends EventEmitter {
       'join', {
       displayName: "testHarmony",
       device: this._device,
-      rtpCapabilities: JSON.parse(roomRtpCapabilities),
-      sctpCapabilities: true
+      rtpCapabilities: JSON.parse(roomRtpCapabilities.toString()),
+      sctpCapabilities: JSON.parse(sctpCapabilities)
     });
 
     let callback = (parm: string): Promise<string> => {
@@ -412,13 +412,19 @@ export class RoomClient extends EventEmitter {
 
       return new Promise(async (resolve, reject) => {
         if (jspnParm.action === 'produce') {
-          // logger.warn('calljs produce', JSON.stringify(jspnParm.appData));
-          logger.warn('calljs produce', JSON.stringify(jspnParm));
+          let appData = { mediaSendState: 0, mediaIdentity: 0 };
+          if (this._videoMode === VIDEO_MODE.SINGLE) {
+            appData.mediaSendState = MEDIA_SEND_STATE.SENDONLY;
+            appData.mediaIdentity = MEDIA_IDENTITY.RECORD_ONLY;
+          } else {
+            appData.mediaSendState = MEDIA_SEND_STATE.FORWARD;
+            appData.mediaIdentity = MEDIA_IDENTITY.CAMERA;
+          }
           await this._protoo.request('produce', {
             transportId: jspnParm.id,
             kind: jspnParm.kind,
             rtpParameters: jspnParm.rtpParameters,
-            appData: jspnParm.appData
+            appData
           }).then(({ id }) => {
             resolve(id);
           }).catch(error => reject(error));
@@ -468,11 +474,11 @@ export class RoomClient extends EventEmitter {
       try {
         this._protooTransport = new WebSocketTransport(this._protooUrl, 'protoo');
         this._protooTransport.on('open', () => {
-          logger.warn('创建WebSocketTransport成功!','onopen');
+          logger.warn('创建WebSocketTransport成功!', 'onopen');
         });
 
         this._protooTransport.on('failed', () => {
-          logger.error('WebSocketTransport','failed!');
+          logger.error('WebSocketTransport', 'failed!');
         });
 
         this._protooTransport.on('close', (event) => {
@@ -480,7 +486,7 @@ export class RoomClient extends EventEmitter {
             logger.error('WebSocketTransport closed: %O', event.reason);
             // this.emit('error', event);
           } else {
-            logger.warn('WebSocketTransport closed: ','normal');
+            logger.warn('WebSocketTransport closed: ', 'normal');
           }
         });
 
@@ -489,13 +495,13 @@ export class RoomClient extends EventEmitter {
         this.emit('error', error);
       }
     } else {
-      logger.warn('protooTransport 已经创建!','')
+      logger.warn('protooTransport 已经创建!', '')
     }
 
     // this._protoo 多次初始化时候,不会有多个连接
     this._protoo = new Peer(this._protooTransport);
     this._protoo.on('open', async () => {
-      logger.warn('创建protoo client成功!','onopen');
+      logger.warn('创建protoo client成功!', 'onopen');
       this.emit('connected');
 
       // 获取媒体信息
@@ -526,10 +532,10 @@ export class RoomClient extends EventEmitter {
 
     this._protoo.on('disconnected', () => {
       if (this._closed) {
-        logger.warn('The connection is down and closed!','disconnected');
+        logger.warn('The connection is down and closed!', 'disconnected');
         return;
       }
-      logger.warn('The connection is down !','disconnected');
+      logger.warn('The connection is down !', 'disconnected');
       // this.close();
       // this.emit('closed');
 
@@ -550,16 +556,16 @@ export class RoomClient extends EventEmitter {
 
     this._protoo.on('close', () => {
       if (this._closed) {
-        logger.warn('The connection is down and closed!','close');
+        logger.warn('The connection is down and closed!', 'close');
         return;
       }
-      logger.warn('close: The connection is down !','close');
+      logger.warn('close: The connection is down !', 'close');
       // this.close();
       // this.emit('closed');
     });
 
     this._protoo.on('request', async (request, accept, reject) => {
-      logger.debug( 'proto "request" event',` [method:${request.method}, data:${JSON.stringify(request.data)}]`);
+      logger.debug('proto "request" event', ` [method:${request.method}, data:${JSON.stringify(request.data)}]`);
       switch (request.method) {
         case 'newConsumer': {
           kingchat.createConsume(JSON.stringify(request.data));
@@ -869,7 +875,12 @@ export class RoomClient extends EventEmitter {
     });
   }
 
-  async startRecord() {
+  async startRecord({
+    upload=true,
+    fileService=undefined,
+    own=true,
+    other=false,
+  }) {
     if (!this._protoo) {
       logger.error("There is no websocket connection !");
       return {
@@ -880,7 +891,11 @@ export class RoomClient extends EventEmitter {
     try {
       const res = await this._protoo.request(
         'start-record', {
-        videoMode: this._videoMode
+        videoMode: this._videoMode,
+        upload,
+        fileService,
+        own,
+        other,
       });
       return res;
     } catch (error) {
@@ -890,10 +905,10 @@ export class RoomClient extends EventEmitter {
   }
 
   async stopRecord({
-    own,
-    other,
-    isMixed,
-    timeout
+    own=true,
+    other=false,
+    isMixed=undefined,
+    timeout=30 * 1000
   }) {
     if (!this._protoo) {
       logger.error("There is no websocket connection !");
@@ -912,6 +927,50 @@ export class RoomClient extends EventEmitter {
     } catch (error) {
       return error;
     }
+  }
+
+  async rtp2webrtc({
+    fileName,
+    startTime = undefined,
+    endTime = undefined,
+    toOwn = true,
+    toOther = false,
+    needRecord,
+    loops = false,
+    vol = undefined
+  }) {
+    if (!this._protoo) {
+      logger.error("There is no websocket connection !");
+      return;
+    }
+
+    const res = await this._protoo.request(
+      'rtp2webrtc', {
+      fileName,
+      startTime,
+      endTime,
+      toOwn,
+      toOther,
+      needRecord,
+      loops,
+      vol
+    });
+
+    return res;
+  }
+
+  async stopRtp2webrtc({toOwn=true}) {
+    if (!this._protoo) {
+      logger.error("There is no websocket connection !");
+      return;
+    }
+
+    const res = await this._protoo.request(
+      'stopRtp2webrtc', {
+      toOwn: true,
+      toOther: false
+    });
+    return res;
   }
 
   closeStream() {

@@ -5,13 +5,13 @@
         "name": "default",
         "type": "HarmonyOS",
         "material": {
-          "certpath": "C:\\Users\\13823\\.ohos\\config\\default_helloKingchat_KVUGtGES5ZB-6bLESxbdC4l99C3VaBaQZw08wuNfKcg=.cer",
-          "storePassword": "0000001BF9CB19B883A5C58A26FFB9001449AF7E25F0B088ACADB234C72830563CBF4B78CD431C747D55DA",
+          "certpath": "C:\\Users\\13823\\.ohos\\config\\default_helloKingchat_cq0PvI282iX7yJaLomQPo0zYLwQtTyWqU81oUVAMrs8=.cer",
+          "storePassword": "0000001BB0DDB467D51237134CAF96A19971B7015575C2FB45DA62915D5B53FF4AC5F158026629B9C2D135",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001B3572C3407CD2C23E0EA3320C71C5F6F05F0A7705EB37EC2A75DCB234A21007706B5BC11AD083AD",
-          "profile": "C:\\Users\\13823\\.ohos\\config\\default_helloKingchat_KVUGtGES5ZB-6bLESxbdC4l99C3VaBaQZw08wuNfKcg=.p7b",
+          "keyPassword": "0000001BEFC26B9352282B572E12930B16A2D296C4EF6C6AF917618D1479520A91DE5F14D7D41A6BFAB70D",
+          "profile": "C:\\Users\\13823\\.ohos\\config\\default_helloKingchat_cq0PvI282iX7yJaLomQPo0zYLwQtTyWqU81oUVAMrs8=.p7b",
           "signAlg": "SHA256withECDSA",
-          "storeFile": "C:\\Users\\13823\\.ohos\\config\\default_helloKingchat_KVUGtGES5ZB-6bLESxbdC4l99C3VaBaQZw08wuNfKcg=.p12"
+          "storeFile": "C:\\Users\\13823\\.ohos\\config\\default_helloKingchat_cq0PvI282iX7yJaLomQPo0zYLwQtTyWqU81oUVAMrs8=.p12"
         }
       }
     ],
